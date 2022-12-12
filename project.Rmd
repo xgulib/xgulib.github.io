@@ -10,9 +10,9 @@ knitr::opts_chunk$set(eval=FALSE, echo=TRUE, warning=FALSE, error=FALSE, message
 
 ## **Introduction**  
 
-Ischemic heart disease (IHD) has been identified as a leading cause of death globally (Ref). Compelling evidence showed that lifestyle changes could be effective strategies for secondary preventions of IHD (Ref). Therefore, to reduce the burden of IHD mortality, an efficient tool for IHD screening and early diagnosis is warranted. A machine learning algorithm that is developed with serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data is promising in simplifying the process and reduce the cost of IHD screening/diagnosis. IHD status could be accurately detected with a simple blood draw and metabolomic profiling. In this project, I aim to develop such an algorithm using data from a European population.  
+Ischemic heart disease (IHD) has been identified as a leading cause of death globally (1). Compelling evidence showed that lifestyle changes could be effective strategies for secondary preventions of IHD (2). Therefore, to reduce the burden of IHD mortality, an efficient tool for IHD screening and early diagnosis is warranted. A machine learning algorithm that is developed with serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data is promising in simplifying the process and reduce the cost of IHD screening/diagnosis. IHD status could be accurately detected with a simple blood draw and metabolomic profiling. In this project, I aim to develop such an algorithm using data from a European population.  
 
-I will use data from the MetaCardis consortium that recruited participants aged 18-75 years from Denmark, France, and Germany (Ref). The data was published early this year as the supplementary material of an article on Nature Medicine (Ref). The original study included 372 individuals with IHD. These IHD cases were further classified into acute coronary syndrome (n = 112), chronic ischemic heart disease, (n = 158), and heart failure (n = 102). With a case-control design, the study also included 3 groups of controls matched on varies factors. The raw data includes 1,882 observations including repeated records with the same participant ID but different case-control status.  
+I will use data from the MetaCardis consortium that recruited participants aged 18-75 years from Denmark, France, and Germany (3). The data was published early this year as the supplementary material of an article on Nature Medicine (3). The original study included 372 individuals with IHD. These IHD cases were further classified into acute coronary syndrome (n = 112), chronic ischemic heart disease, (n = 158), and heart failure (n = 102). With a case-control design, the study also included 3 groups of controls matched on varies factors. The raw data includes 1,882 observations including repeated records with the same participant ID but different case-control status.  
 
 For this project, I will use records from the 372 IHD cases and 372 controls matched on type 2 diabetes (T2D) status and body mass index (BMI). I will also extract data for age, gender, fasting plasma triglycerides, adiponectin, and CRP, systolic and diastolic blood pressure, left ventricular ejection fraction, physical activity level, and 1,513 log-transformed values of serum metabolites.  
 
@@ -64,6 +64,10 @@ Successful?
 
 
 ## **Reference**  
+
+1. Tsao, C.W., et al. Heart Disease and Stroke Statistics-2022 Update: A Report From the American Heart Association. Circulation 145, e153-e639 (2022).  
+2. Brinks, J., Fowler, A., Franklin, B.A. & Dulai, J. Lifestyle Modification in Secondary Prevention: Beyond Pharmacotherapy. Am J Lifestyle Med 11, 137-152 (2017).  
+3. Fromentin, S., et al. Microbiome and metabolome features of the cardiometabolic disease spectrum. Nat Med 28, 303-314 (2022).
 
 ## **Appendix**  
 ```{r}
