@@ -1,13 +1,14 @@
 ---
-title: "BST 260 Final Project"
+title: "Machine Learning Algorithms for Ischemic Heart Disease (IHD) Prediction"
 author: "Xiao Gu"
+date: "December 16, 2022"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(eval=TRUE, echo=TRUE, warning=FALSE, error=FALSE, message=FALSE, out.width="50%", out.height="50%")
+knitr::opts_chunk$set(eval=FALSE, echo=TRUE, warning=FALSE, error=FALSE, message=FALSE, out.width="50%", out.height="50%")
 ```
 
-## Introduction  
+## **Introduction**  
 
 Ischemic heart disease (IHD) has been identified as a leading cause of death globally (Ref). Compelling evidence showed that lifestyle changes could be effective strategies for secondary preventions of IHD (Ref). Therefore, to reduce the burden of IHD mortality, an efficient tool for IHD screening and early diagnosis is warranted. A machine learning algorithm that is developed with serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data is promising in simplifying the process and reduce the cost of IHD screening/diagnosis. IHD status could be accurately detected with a simple blood draw and metabolomic profiling. In this project, I aim to develop such an algorithm using data from a European population.  
 
@@ -25,7 +26,7 @@ I then preprocessed the data to remove non-informative predictors with near-zero
 
 The outcome that my algorithm aimed to predict is the binary IHD status (non-case = 0, case = 1). Considering that I had 1422 predictors, I would use principle component analysis (PCA) to reduce dimensions. I would keep principle components that account for at least 70% of variability as new predictors, and train a model with logistic regression, and a model with K-nearest neighbor (KNN). Given that the principle components are hard to interpret and algorithms developed based on PCA could be difficult to implement, I would train another KNN model with all 1422 predictors instead. Random forest would be the 4th training method I would use. Finally, I will use ensemble to combine the results of all four algorithms. For all algorithms, I would evaluate the overall accuracy, sensitivity, specificity, $F_1$ score, and ROC curve. I would use a $\beta$ of 2 to calculate the $F_1$ score because higher sensitivity is more important than high specificity when predicting disease. In other words, false positive will be less costly than false negative in this scenario. I would also use cross-validation and bootstrapping to tune the model parameters.  
 
-## Results  
+## **Results**  
 
 For all the model training and fitting, I partitioned the `main` dataset, which includes IHD case status and all predictors, into a training and a testing dataset. Matrices for predictors and cases were also created. I then train and assess the models with the following 4 approaches: 1) PCA + logistic regression; 2) PCA + KNN; 3) KNN; 4) Random forest.
 
@@ -53,7 +54,7 @@ The last approach I used to train my model is random forest. It is more computat
 
 The overall accuracy of my predicted IHD cases from the random forest model was 0.900 with a 95% confidence interval of (0.832, 0.947). This algorithm had a high sensitivity of 0.939, a high specificity of 0.855, an high $F_1$ score of 0.927, and a high AUC of 0.958.  
 
-## Conclusion  
+## **Conclusion**  
 
 In this project, I aimed to develop an algorithm that uses serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data to predict ischemic heart disease (IHD) status in a European population. I obtained my data from a paper published early this year on Nature Medicine (Ref). For data preprocessing, I removed observations with missing metabolites measures, and predictors with at least around 30% of missing data. For predictors with small amount of missing data, I replaced the missing values with median values. Additionally, predictors with near-zero variance were also excluded. I used 4 approaches to train my model. The first two approaches used PCA to reduce dimension from 1422 predictors. A logistic regression and a KNN model were trained and fitted with the selected 69 PCs. The 3rd approach was also based on KNN but fitted the model with the 1422 predictors. The last approach used random forest to develop the algorithm. I summarized the sensitivity, specificity, overall accuracy, $F_1$ score, and AUC of all models in a table. I also conducted an ensemble to combine results from the KNN model and random forest model and showed the performance at the end of the table. ROC curves were plotted on the same figure for comparison.  
 
@@ -62,9 +63,9 @@ According to the table, the two models developed with PCs had lower sensitivity 
 Successful?
 
 
-## Reference  
+## **Reference**  
 
-## Appendix  
+## **Appendix**  
 ```{r}
 library(tidyverse)
 library(readxl)
