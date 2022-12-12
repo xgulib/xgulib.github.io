@@ -2,10 +2,10 @@
 title: "BST 260 Final Project"
 author: "Xiao Gu"
 output:
+  pdf_document: default
+  html: default
   html_document:
     df_print: paged
-  html: default
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
