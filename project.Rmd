@@ -5,7 +5,7 @@ date: "December 16, 2022"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(eval=FALSE, echo=TRUE, warning=FALSE, error=FALSE, message=FALSE, out.width="50%", out.height="50%")
+knitr::opts_chunk$set(eval=TRUE, echo=TRUE, warning=FALSE, error=FALSE, message=FALSE, out.width="50%", out.height="50%")
 ```
 
 ## **Introduction**  
@@ -18,9 +18,9 @@ For this project, I will use records from the 372 IHD cases and 372 controls mat
 
 ### Exploratory data analysis  
 
-After reading in the data, I first filtered the observations to keep the IHD cases and their controls matched by T2D status and BMI. I then merged metabolites data with cardiometabolic biomarkers and self-reported phenotypic data to create a `main` dataset with 744 rows and 1522 columns. I noticed that several participants do not have any metabolites data, and therefore, need to be removed. Additionally, around 30% of participants had missing values for left ventricular ejection fraction and physical activity level. Many machine learning techniques could not be implemented with that many missing and it would also not be appropriate to replace the missings with any arbitrarily selected value. So I removed these two potential predictors from my analyses. Finally, for variables with less than 10% missing data, I replaced the missing values with the median of the non-missing data. The cleaned `main` dataset had 603 rows and 1522 columns.  
+After reading in the data, I first filtered the observations to keep the IHD cases and their controls matched by T2D status and BMI. I then merged metabolites data with cardiometabolic biomarkers and self-reported phenotypic data to create a `main` dataset with 744 rows and 1522 columns. I noticed that several participants do not have any metabolites data, and therefore, need to be removed. Additionally, around 30% of participants had missing values for left ventricular ejection fraction and physical activity level. Many machine learning techniques could not be implemented with that many missing and it would also not be appropriate to replace the missings with any arbitrarily selected value. So I removed these two potential predictors from my analyses. Finally, for variables with less than 10% missing data, I replaced the missing values with the median of the non-missing data. The cleaned `main` dataset had 603 rows and 1522 columns. The first 6 rows of the cleaned `main` dataset was printed in the Appendix.  
 
-I then preprocessed the data to remove non-informative predictors with near-zero variances. Given that I planned to train as least one of my algorithms with regression, it would be better to have more predictors normally distributed so that model efficiencies could be improved. I tested the normality of each predictor with Shapiro-wilks Test and summarized the p-values. I found that only 101 predictors are normally distributed. It is also note-worthy that the metabolite values from the raw data were all log-transformed. Obviously, log-tranformation did not normalize the distributions successfully. So I transformed all metabolite values back to the original scale and used rank-based inverse normal transformation (INT) to normalized the distributions instead. As examples, histograms showing the distributions of oleoylcarnitine (C18:1) and S-methylcysteine sulfoxide before and after the transformation were shown. I ended up having 840 predictors normalized successfully.  
+I then preprocessed the data to remove non-informative predictors with near-zero variances. Given that I planned to train as least one of my algorithms with regression, it would be better to have more predictors normally distributed so that model efficiencies could be improved. I tested the normality of each predictor with Shapiro-wilks Test and summarized the p-values. I found that only 101 predictors are normally distributed. It is also note-worthy that the metabolite values from the raw data were all log-transformed. Obviously, log-tranformation did not normalize the distributions successfully. So I transformed all metabolite values back to the original scale and used rank-based inverse normal transformation (INT) to normalized the distributions instead. As examples, histograms showing the distributions of oleoylcarnitine (C18:1) and S-methylcysteine sulfoxide before and after the transformation were shown (Figure 1-2). I ended up having 840 predictors normalized successfully.  
 
 ### Methodologies to use  
 
@@ -28,39 +28,39 @@ The outcome that my algorithm aimed to predict is the binary IHD status (non-cas
 
 ## **Results**  
 
-For all the model training and fitting, I partitioned the `main` dataset, which includes IHD case status and all predictors, into a training and a testing dataset. Matrices for predictors and cases were also created. I then train and assess the models with the following 4 approaches: 1) PCA + logistic regression; 2) PCA + KNN; 3) KNN; 4) Random forest.
+For all the model training and fitting, I partitioned the `main` dataset, which includes IHD case status and all predictors, into a training (`train_set`) and a testing (`test_set`) dataset. Matrices for predictors and cases were also created. I then train and assess the models with the following 4 approaches: 1) Logistic regression with principle components as predictors (PCA + Logistic); 2) K-nearest neighbors with principle components as predictors (PCA + KNN); 3) K-nearest neighbors with serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data as predictors (KNN); and 4) Random forest with serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data as predictors (RF).  
 
-### PCA + logistic regression  
+### PCA + Logistic regression  
 
-The PCA in the training set generated 483 principle components (PC) from 1422 predictors including age, gender, fasting plasma triglycerides, adiponectin, and CRP, systolic and diastolic blood pressure, and 1415 inverse normal transformed serum metabolites. After evaluating the proportion of variance explained by each PC, I selected the first 69 PCs that account for 70% of the total variance as new predictors. I fitted a logistic regression with IHD cases as the dependent variable and the 69 PCs as the independent variables. For the logistic regression, there was no model parameter to tune. To make predictions in the testing set, I used the PC rotations to transform all 1422 predictors in the testing set into 483 PCs and kept the first 69 PCs. The logistic regression estimates were then used to predict the probability of having IHD cases in the testing set. Participants with a predicted probability of having IHD over 0.5 were defined as predicted IHD cases.  
+The PCA in the training set generated 483 principle components (PCs) from 1422 predictors including age, gender, fasting plasma triglycerides, adiponectin, and CRP, systolic and diastolic blood pressure, and 1415 inverse normal transformed serum metabolites. After evaluating the proportion of variance explained by each PC, I selected the first 69 PCs that account for 70% of the total variance as new predictors. Proportion of variance explained by each of the first 69 PCs were printed in the Appendix. I fitted a logistic regression with IHD cases as the dependent variable and the 69 PCs as the independent variables. For the logistic regression, there was no model parameter to tune. To make predictions in the testing set, I used the PC rotations to transform all 1422 predictors in the testing set into 483 PCs and kept the first 69 PCs. The logistic regression estimates were then used to predict the probability of having IHD cases in the testing set. Participants with a predicted probability of having IHD over 0.5 were defined as predicted IHD cases.  
 
-The overall accuracy of my predicted IHD cases from the logistic regression was 0.875 with a 95% confidence interval of (0.802, 0.928). This algorithm had a sensitivity of 0.892, a specificity of 0.854, and an $F_1$ score of 0.890. I also plotted the ROC and observed an area under the curve (AUC) of 0.946, which was very high.  
+The overall accuracy of my predicted IHD cases from the logistic regression was 0.875 with a 95% confidence interval of (0.802, 0.928). This algorithm had a sensitivity of 0.892, a specificity of 0.854, and an $F_1$ score of 0.890. I also plotted the ROC and observed an area under the curve (AUC) of 0.946, which was very high (Figure 3).  
 
 ### PCA + KNN  
 
-I then used KNN to train the model with the 69 PCs as predictors. To select the parameter K that maximize the accuracy, I used 10-fold cross-validation with bootstrapping as the resampling scheme. Given that I have already reduced the dimension to 69 and we only have 603 observations, I did not worry much about the computation time of using 10-fold cross-validation. I fitted the model with K values from 2 to 100 with 20 as the increment. After plotting the model accuracy under different K values, I was not able to identify a clear optimized K given that the curve of accuracy did not go down within the specified K range. Therefore, I fitted the model with K values from 5 to 150 with 10 as the increment instead. I identified 75 as the K for the maximum model accuracy and fitted the model again with this value. The fitted KNN model was then used to predict the IHD cases in the testing set.  
+I then used KNN to train the model with the 69 PCs as predictors. To select the parameter K that maximize the accuracy, I used 10-fold cross-validation with bootstrapping as the resampling scheme. Given that I have already reduced the dimension to 69 and we only have 603 observations, I did not worry much about the computation time of using 10-fold cross-validation. I fitted the model with K values from 2 to 100 with 20 as the increment. After plotting the model accuracy under different K values, I was not able to identify a clear optimized K given that the curve of accuracy did not go down within the specified K range (Figure 4a). Therefore, I fitted the model with K values from 5 to 150 with 10 as the increment instead. I identified 75 as the K for the maximum model accuracy and fitted the model again with this value (Figure 4b). The fitted KNN model was then used to predict the IHD cases in the testing set.  
 
-Using the combination of PCA and KNN, the overall accuracy of my predicted IHD cases was 0.842 with a 95% confidence interval of (0.764, 0.902). Comparing to the algorithm developed with PCA and logistic regression, this algorithm had a higher sensitivity of 0.923, a lower specificity of 0.746, and a higher $F_1$ score of 0.898. I plotted the ROC and observed an AUC of 0.889.  
+Using the combination of PCA and KNN, the overall accuracy of my predicted IHD cases was 0.842 with a 95% confidence interval of (0.764, 0.902). Comparing to the algorithm developed with PCA and logistic regression, this algorithm had a higher sensitivity of 0.923, a lower specificity of 0.746, and a higher $F_1$ score of 0.898. I plotted the ROC and observed an AUC of 0.889 (Figure 5).  
 
 ### KNN  
 
 The previous two algorithms developed based on selected PCs already performed well in predicting IHD cases. However, people who wants to implement these two algorithms have to use the PCA rotations to transform their data first. That could increase the burden of using these algorithms, particularly in clinical settings. Also, the PCs no longer have biological meaning, and therefore, could be difficult to interpret. With these concerns, I developed another KNN-based algorithm with the 1422 predictors, including 1415 serum metabolites.   
 
-Given that the sample size of my study is not large, I used 10-fold cross-validation with bootstrapping as the resampling scheme to select the parameter K again. I found 65 as the K that maximize the model accuracy after fitting the model with K values from 5 to 150 with 10 as the increment. I then fitted the model in the training set and predicted the IHD cases in the testing set. The overall accuracy of my predicted IHD cases was 0.800 with a 95% confidence interval of (0.717, 0.868). Comparing to the algorithm developed with PCA and KNN, this KNN algorithm had a slightly higher sensitivity of 0.939. But the specificity dropped to 0.636. The $F_1$ score was 0.894. I plotted the ROC and observed an AUC of 0.897.  
+Given that the sample size of my study is not large, I used 10-fold cross-validation with bootstrapping as the resampling scheme to select the parameter K again. I found 65 as the K that maximize the model accuracy after fitting the model with K values from 5 to 150 with 10 as the increment (Figure 6). I then fitted the model in the training set and predicted the IHD cases in the testing set. The overall accuracy of my predicted IHD cases was 0.800 with a 95% confidence interval of (0.717, 0.868). Comparing to the algorithm developed with PCA and KNN, this KNN algorithm had a slightly higher sensitivity of 0.939. But the specificity dropped to 0.636. The $F_1$ score was 0.894. I plotted the ROC and observed an AUC of 0.897 (Figure 7).  
 
 ### Random forest  
 
-The last approach I used to train my model is random forest. It is more computationally intensive because predictors have to be randomly selected using bootstrapping to predict a single tree. To stabilize accuracy, hundreds of trees might need to be predicted. Also, I have to change the number of predictors being sampled at each bootstrap iteration to find the one that maximize the accuracy. Therefore, I started training the model with 15 trees and tuning the number of predictors to be sampled between 10 and 1000 with 100 as the increment. I implemented a 5-fold cross-validation. The plot of error against number of trees showed that the accuracy improves as we add more trees and stabilized at around 100 trees. In my second attempt, I changed the number of trees to be predicted to 100. The plot of accuracy by the number of randomly sampled predictors did show a maximum point. However, it seems that the range of 10 to 1000 predictors was too large. So I further tuned the number of predictors to be sampled from 10 to 500 with 20 as the increment. It turned out that randomly sample 150 predictors and predict 100 trees maximized and stabilized the accuracy of model prediction.  
+The last approach I used to train my model is random forest. It is more computationally intensive because predictors have to be randomly selected using bootstrapping to predict a single tree. To stabilize accuracy, hundreds of trees might need to be predicted. Also, I have to change the number of predictors being sampled at each bootstrap iteration to find the one that maximize the accuracy. Therefore, I started training the model with 15 trees and tuning the number of predictors to be sampled between 10 and 1000 with 100 as the increment. I implemented a 5-fold cross-validation. The plot of error against number of trees showed that the accuracy improves as we add more trees and stabilized at around 100 trees (Figure 8a & 9a). In my second attempt, I changed the number of trees to be predicted to 100. The plot of accuracy by the number of randomly sampled predictors did show a maximum point. However, it seems that the range of 10 to 1000 predictors was too large (Figure 8b & 9b). So I further tuned the number of predictors to be sampled from 10 to 500 with 20 as the increment. It turned out that randomly sample 150 predictors and predict 100 trees maximized and stabilized the accuracy of model prediction (Figure 8c & 9c).  
 
-The overall accuracy of my predicted IHD cases from the random forest model was 0.900 with a 95% confidence interval of (0.832, 0.947). This algorithm had a high sensitivity of 0.939, a high specificity of 0.855, an high $F_1$ score of 0.927, and a high AUC of 0.958.  
+The overall accuracy of my predicted IHD cases from the random forest model was 0.900 with a 95% confidence interval of (0.832, 0.947). This algorithm had a high sensitivity of 0.939, a high specificity of 0.855, an high $F_1$ score of 0.927, and a high AUC of 0.958 (Figure 10).  
 
 ## **Conclusion**  
 
-In this project, I aimed to develop an algorithm that uses serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data to predict ischemic heart disease (IHD) status in a European population. I obtained my data from a paper published early this year on Nature Medicine (Ref). For data preprocessing, I removed observations with missing metabolites measures, and predictors with at least around 30% of missing data. For predictors with small amount of missing data, I replaced the missing values with median values. Additionally, predictors with near-zero variance were also excluded. I used 4 approaches to train my model. The first two approaches used PCA to reduce dimension from 1422 predictors. A logistic regression and a KNN model were trained and fitted with the selected 69 PCs. The 3rd approach was also based on KNN but fitted the model with the 1422 predictors. The last approach used random forest to develop the algorithm. I summarized the sensitivity, specificity, overall accuracy, $F_1$ score, and AUC of all models in a table. I also conducted an ensemble to combine results from the KNN model and random forest model and showed the performance at the end of the table. ROC curves were plotted on the same figure for comparison.  
+In this project, I aimed to develop an algorithm that uses serum metabolites, cardiometabolic biomarkers, and self-reported phenotypic data to predict ischemic heart disease (IHD) status in a European population. I obtained my data from a paper published early this year on Nature Medicine (3). For data preprocessing, I removed observations with missing metabolites measures, and predictors with at least around 30% of missing data. For predictors with small amount of missing data, I replaced the missing values with median values. Additionally, predictors with near-zero variance were also excluded. I used 4 approaches to train my model. The first two approaches used PCA to reduce dimension from 1422 predictors. A logistic regression and a KNN model were trained and fitted with the selected 69 PCs. The 3rd approach was also based on KNN but fitted the model with the 1422 predictors. The last approach used random forest to develop the algorithm. I summarized the sensitivity, specificity, overall accuracy, $F_1$ score, and AUC of all models in a table (Table 1). I also conducted an ensemble to combine results from the KNN model and random forest model and showed the performance at the end of the table. ROC curves were plotted on the same figure for comparison (Figure 11 & 12).  
 
-According to the table, the two models developed with PCs had lower sensitivity than those trained with all predictors. The KNN and random forest models both had a very high sensitivity of 0.938. The two models developed with KNN had lower specificity than the others. The random forest model also had a relatively high specificity of 0.855. The KNN model biologically meaningful predictors had the lowest overall accuracy while the random forest model had the highest overall accuracy. The models with PCs as predictors and used logistic regression for fitting had an overall accuracy of 0.875 while the model using PCs and KNN had an accuracy of 0.842. When evaluating with $F_1$ score, the random forest model performed the best while the rest three models performed similarly. Finally, the random forest model had the highest AUC, followed by the PCA + KNN model. It is interesting that ensemble of KNN and random forest did not further improve the model performance. In conclusion, the algorithm developed with random forest performed the best in all measures.  
+According to the table, the two models developed with PCs had lower sensitivity than those trained with all predictors. The KNN and random forest models both had a very high sensitivity of 0.938. The two models developed with KNN had lower specificity than the others. The random forest model also had a relatively high specificity of 0.855. The KNN model biologically meaningful predictors had the lowest overall accuracy while the random forest model had the highest overall accuracy. The models with PCs as predictors and used logistic regression for fitting had an overall accuracy of 0.875 while the model using PCs and KNN had an accuracy of 0.842. When evaluating with $F_1$ score, the random forest model performed the best while the rest three models performed similarly. Finally, the random forest model had the highest AUC, followed by the PCA + KNN model. It is interesting that ensemble of KNN and random forest did not further improve the model performance. In conclusion, the algorithm developed with random forest performed the best in all measures (Table 1).  
 
-Successful?
+My analysis that used 4 different approaches to train the algorithm is successful. I identified the random forest algorithm as the best among the 4 according to all 5 measures. The sensitivity of predicting IHD is particularly high. It is particularly important because we don't want to miss any IHD cases if the patient really has IHD. Early detection could improve the prognosis and lower mortality. Moreover, the high sensitivity of my algorithm is not at the cost of low specificity. The specificity is also reasonably high. That could lower the probability of identifying healthy people as IHD cases and avoid overtreatment. It is also great that a random forest-based algorithm does not require extensive data transformation. Future implementation in clinical settings could be more efficient. If I have more time to spend on this project, I would look for metabolomics data in other populations and develop an algorithm that has higher generalizability.
 
 
 ## **Reference**  
@@ -70,7 +70,7 @@ Successful?
 3. Fromentin, S., et al. Microbiome and metabolome features of the cardiometabolic disease spectrum. Nat Med 28, 303-314 (2022).
 
 ## **Appendix**  
-```{r}
+```{r readin-cleaning}
 library(tidyverse)
 library(readxl)
 library(caret)
@@ -85,7 +85,7 @@ meta <- read_excel("/Users/xgu/Documents/Harvard/Fall 2022/BST260/bst260project/
 demo <- read_excel("/Users/xgu/Documents/Harvard/Fall 2022/BST260/bst260project/41591_2022_1688_MOESM3_ESM.xlsx", 
                    sheet = 10, skip = 1, na = "NA", col_types = c("text", "text", rep("numeric", 22), "text", "text", "text"))
 
-#Selection and filtering
+#Filter IHD cases and controls, keep phynotypic data and cardiometabolic biomarkers
 demo_new <- demo %>%
   filter(Status %in% c("IHD372", "MMC372")) %>%
   mutate(case = case_when(Status == "MMC372" ~ 0, TRUE ~ 1),
@@ -95,7 +95,8 @@ demo_new <- demo %>%
          sbp = "Systolic blood pressure (mmHg)", dbp = "Diastolic blood pressure (mmHg)", 
          lvef = "Left ventricular ejection fraction (%)", act = "Physical activity (h/week)") %>%
   select(ID, case, age, tag, adiponectin, crp, sbp, dbp, Gender, lvef, act)
-  
+
+#Filter IHD cases and controls, keep metabolites
 meta_new <- meta %>%
   filter(Status %in% c("IHD372", "MMC372")) %>%
   select(-c(Status))
@@ -103,18 +104,15 @@ meta_new <- meta %>%
 #Merge
 main <- demo_new %>%
   left_join(meta_new, by = "ID")
-head(main)
-```  
 
-```{r}
 #Check missing
 pctmiss <- function(x){
   pctmiss <- sum(is.na(x))/length(x)
   return(pctmiss)
 }
 miss <- as.data.frame(sapply(main, pctmiss))
-head(miss)
 
+#Further filtering and missing replacement
 main <- main %>% 
   select(-c("lvef", "act")) %>% 
   filter(acetate != "NA", spermidine != "NA") %>%
@@ -126,50 +124,53 @@ main <- main %>%
 head(main)
 ```  
 
-```{r}
+```{r preprocessing}
+#Keep the predictors
 var <- main %>% select(-c("ID", "case"))
 
-#Preprocessing
+#Identify non-informative predictors with very low variance
 nzv <- nearZeroVar(var)
 col_index <- setdiff(1:ncol(var), nzv)
 length(col_index)
 
+#Remove non-informative predictors
 var_proc <- var[,col_index]
 
-#check normality
+#Check normality
 normality <- data.frame()
 for (i in 1:length(colnames(var_proc))){
   normality[i, 1] <- colnames(var_proc)[i]
   normality[i, 2] <- shapiro.test(pull(var_proc[,i]))$p.value
   colnames(normality) <- c("metabolites", "shapiro.p")
 }
-table(ifelse(normality$shapiro.p >0.05, 1, 0))
+table(ifelse(normality$shapiro.p >0.05, 1, 0)) #Only 101 normally distributed predictors
 #which(normality$shapiro.p > 0.05)
 
-#Log transformation not work
+#Exponentiate the log metabolites
 m <- as.matrix(var_proc[,8:1422])
 exp_m <- exp(m)
 var_proc_exp <- cbind(var_proc[,1:7], as.data.frame(exp_m))
 
+#Inverse-normal-transform the predictors
 var_proc_int <- as.data.frame(sapply(var_proc_exp, RankNorm))
 
-#check normality again!
+#Check normality again
 normality_int <- data.frame()
 for (i in 1:length(colnames(tibble(var_proc_int)))){
   normality_int[i, 1] <- colnames(tibble(var_proc_int))[i]
   normality_int[i, 2] <- shapiro.test(pull(tibble(var_proc_int)[,i]))$p.value
   colnames(normality_int) <- c("metabolites", "shapiro.p")
 }
-table(ifelse(normality_int$shapiro.p >0.05, 1, 0))
+table(ifelse(normality_int$shapiro.p >0.05, 1, 0)) #Now have 840 normally distributed predictors
 #which(normality_int$shapiro.p > 0.05)
 
-hist(var_proc_exp$`oleoylcarnitine (C18:1)`, main = "Histogram of oleoylcarnitine (C18:1)", xlab = "Oleoylcarnitine (C18:1)")
-hist(var_proc_int$`oleoylcarnitine (C18:1)`, main = "Histogram of INT-transformed oleoylcarnitine (C18:1)", xlab = "INT(Oleoylcarnitine (C18:1))")
-hist(var_proc_exp$`S-methylcysteine sulfoxide`, main = "Histogram of S-methylcysteine sulfoxide", xlab = "S-methylcysteine sulfoxide")
-hist(var_proc_int$`S-methylcysteine sulfoxide`, main = "Histogram of INT-transformed S-methylcysteine sulfoxide", xlab = "INT(S-methylcysteine sulfoxide)")   
+hist(var_proc_exp$`oleoylcarnitine (C18:1)`, main = "Fig 1a. Histogram of oleoylcarnitine", xlab = "Oleoylcarnitine (C18:1)")
+hist(var_proc_int$`oleoylcarnitine (C18:1)`, main = "Fig 1b. Histogram of INT-transformed oleoylcarnitine (C18:1))", xlab = "INT(Oleoylcarnitine (C18:1))")
+hist(var_proc_exp$`S-methylcysteine sulfoxide`, main = "Fig 2a. Histogram of S-methylcysteine sulfoxide", xlab = "S-methylcysteine sulfoxide")
+hist(var_proc_int$`S-methylcysteine sulfoxide`, main = "Fig 2b. Histogram of INT-transformed S-methylcysteine sulfoxide", xlab = "INT(S-methylcysteine sulfoxide)")   
 ```  
 
-```{r}
+```{r data-partitioning}
 #Split data
 set.seed(34324)
 main_new <- cbind(main[,1:2], var_proc_int)
@@ -184,21 +185,22 @@ x_test <- as.matrix(test_set[,3:1424])
 y_test <- factor(test_set$case)
 ```
 
-```{r}
-#######PCA
+```{r pca}
+#PCA
 col_means <- colMeans(x_train)
 
 pca <- prcomp(x_train)
 s_pca_3 <- summary(pca)$importance[3,] ##69 pc
 head(s_pca_3, 69)
 
+#New PC predictors
 pc <- 69
 x_train_pc <- pca$x[,1:pc] 
 ```
 
-```{r}
-#####PCA + glm
-glm_tmp <- as.data.frame(cbind(train_set$case, x_train_pc))
+```{r pcaglm}
+#PCA + Logistic
+glm_tmp <- as.data.frame(cbind(train_set$case, x_train_pc)) #Merge cases with PCs
 glm_tmp <- glm_tmp %>% rename(case = V1)
 fit_glm <- glm(case ~., data = glm_tmp, family = "binomial")
 
@@ -206,33 +208,37 @@ x_test_pc_pre <- sweep(x_test,2,col_means) %*% pca$rotation
 x_test_pc <- x_test_pc_pre[,1:pc]
 y_prob <- predict(fit_glm, as.data.frame(x_test_pc), type = "response")
 y_pred_glm <- factor(ifelse(y_prob > 0.5, 1, 0))
-confusionMatrix(y_pred_glm, y_test)$overall[["Accuracy"]] 
-F_meas(y_pred_glm, y_test, beta = 2)
+confusionMatrix(y_pred_glm, y_test)
+F_meas(y_pred_glm, y_test, beta = 2) #F_1 score with beta=2
 
 #ROC
 roc_glm <- roc(as.factor(test_set$case), y_prob)
 plot(roc_glm, print.thres="best", type = "line", print.auc = TRUE, legacy.axes = TRUE,
-     grid = TRUE, ylim = c(0,1), xlim = c(1,0), col = "Red", main = "ROC for PCA + GLM") 
+     grid = TRUE, ylim = c(0,1), xlim = c(1,0), col = "Red", main = "Fig 3. ROC for PCA + Logistic") 
+```
 
-
-#######PCA + KNN
+```{r pcaknn}
+#PCA + KNN
 set.seed(5436)
 b <- 10
 control_pca <- trainControl(method = "cv", number = b, p = .9) 
 train_pcaknn <- train(x_train_pc, y_train,  
                    method = "knn",  
-                   tuneGrid = data.frame(k = seq(2,100,20)), #
+                   tuneGrid = data.frame(k = seq(2,100,20)),
                    trControl = control_pca) 
-ggplot(train_pcaknn, highlight = TRUE)
+ggplot(train_pcaknn, highlight = TRUE) +
+  ggtitle("Fig 4a. Accuracy at different K values (PCA+KNN)")
 
+#Second attempt
 set.seed(5432)
 b <- 10
 control_pca <- trainControl(method = "cv", number = b, p = .9) 
 train_pcaknn2 <- train(x_train_pc, y_train,  
                    method = "knn",  
-                   tuneGrid = data.frame(k = seq(5,150,10)), #
+                   tuneGrid = data.frame(k = seq(5,150,10)),
                    trControl = control_pca) 
-ggplot(train_pcaknn2, highlight = TRUE)
+ggplot(train_pcaknn2, highlight = TRUE) +
+  ggtitle("Fig 4b. Accuracy at different K values (PCA+KNN, 2nd attempt)")
 
 train_pcaknn2$bestTune 
 train_pcaknn2$results$Accuracy
@@ -240,16 +246,17 @@ fit_pcaknn <- knn3(x_train_pc, y_train, k = train_pcaknn2$bestTune$k)
 
 y_pred_pcaknn <- predict(fit_pcaknn, x_test_pc, type = "class")
 y_pred_pcaknn_p <- predict(fit_pcaknn, x_test_pc, type = "prob")
-confusionMatrix(y_pred_pcaknn, y_test)$overall["Accuracy"]
+confusionMatrix(y_pred_pcaknn, y_test)
 F_meas(y_pred_pcaknn, y_test, beta = 2)
 
 #ROC
 roc_pcaknn <- roc(as.factor(test_set$case), y_pred_pcaknn_p[, 2])
-plot(roc_pcaknn, print.thres="best", type = "line", print.auc = TRUE, grid = TRUE, ylim = c(0,1), col = "Red")
+plot(roc_pcaknn, print.thres="best", type = "line", print.auc = TRUE, legacy.axes = TRUE,
+     grid = TRUE, ylim = c(0,1), col = "Red", main = "Fig 5. ROC for PCA + KNN")
 ```  
 
-```{r}
-#####KNN
+```{r knn}
+#KNN
 set.seed(3245)
 b <- 10
 control_knn <- trainControl(method = "cv", number = b, p = .9) 
@@ -257,7 +264,9 @@ train_knn <- train(x_train, y_train,
                    method = "knn",  
                    tuneGrid = data.frame(k = seq(5,150,10)), 
                    trControl = control_knn) 
-ggplot(train_knn, highlight = TRUE)
+ggplot(train_knn, highlight = TRUE) +
+  ggtitle("Fig 6. Accuracy at different K values (KNN)")
+
 train_knn$bestTune 
 train_knn$results$Accuracy
 fit_knn <- knn3(x_train, y_train, k = train_knn$bestTune$k) 
@@ -265,16 +274,16 @@ fit_knn <- knn3(x_train, y_train, k = train_knn$bestTune$k)
 y_pred_knn <- predict(fit_knn, x_test, type = "class")
 y_pred_knn_p <- predict(fit_knn, x_test, type = "prob")
 confusionMatrix(y_pred_knn, y_test)
-confusionMatrix(y_pred_knn, y_test)$overall["Accuracy"]
 F_meas(y_pred_knn, y_test, beta = 2)
 
 #ROC
 roc_knn <- roc(as.factor(test_set$case), y_pred_knn_p[, 2])
-plot(roc_knn, print.thres="best", type = "line", print.auc = TRUE, grid = TRUE, ylim = c(0,1))
+plot(roc_knn, print.thres="best", type = "line", print.auc = TRUE, grid = TRUE, legacy.axes = TRUE,
+     ylim = c(0,1), col = "Red", main = "Fig 7. ROC for KNN")
 ```  
 
-```{r}
-##########Random forest
+```{r rf}
+#Random forest
 set.seed(4536)
 b <- 5
 control_rf <- trainControl(method="cv", number = b, p = .9) 
@@ -283,13 +292,15 @@ train_rf <-  train(x_train, y_train,
                    ntree = 15,
                    trControl = control_rf, 
                    tuneGrid = data.frame(mtry = seq(10, 1000, 100))) 
-ggplot(train_rf, highlight = TRUE)
+ggplot(train_rf, highlight = TRUE) +
+  ggtitle("Fig 8a. Accuracy at different number of selected predictors")
+
 train_rf$bestTune
 train_rf$results$Accuracy
 fit_rf <- randomForest(x_train, y_train,  
                        mtry = train_rf$bestTune$mtry,
                        minNode = 10) 
-plot(fit_rf) 
+plot(fit_rf, main = "Fig 9a. Error by number of trees") 
 
 
 set.seed(6543)
@@ -300,13 +311,15 @@ train_rf2 <-  train(x_train, y_train,
                    ntree = 100,
                    trControl = control_rf, 
                    tuneGrid = data.frame(mtry = seq(10, 1000, 100))) 
-ggplot(train_rf2, highlight = TRUE)
+ggplot(train_rf2, highlight = TRUE) +
+  ggtitle("Fig 8b. Accuracy at different number of selected predictors (2nd attempt)")
+
 train_rf2$bestTune
 train_rf2$results$Accuracy
 fit_rf2 <- randomForest(x_train, y_train,  
                        mtry = train_rf2$bestTune$mtry,
                        minNode = 10) 
-plot(fit_rf2) 
+plot(fit_rf2, main = "Fig 9b. Error by number of trees (2nd attempt)") 
 
 
 set.seed(232)
@@ -317,25 +330,27 @@ train_rf3 <-  train(x_train, y_train,
                    ntree = 100,
                    trControl = control_rf, 
                    tuneGrid = data.frame(mtry = seq(10, 500, 20))) 
-ggplot(train_rf3, highlight = TRUE)
+ggplot(train_rf3, highlight = TRUE) +
+  ggtitle("Fig 8c. Accuracy at different number of selected predictors (3rd attempt)")
+
 train_rf3$bestTune
 train_rf3$results$Accuracy
 fit_rf3 <- randomForest(x_train, y_train,  
                        mtry = train_rf3$bestTune$mtry,
                        minNode = 10) 
-plot(fit_rf3) 
+plot(fit_rf3, main = "Fig 9c. Error by number of trees (3rd attempt)") 
 
 y_pred_rf <- predict(fit_rf3, x_test, type = "class")
 y_pred_rf_p <- predict(fit_rf3, x_test, type = "prob")
 confusionMatrix(y_pred_rf, y_test)
-confusionMatrix(y_pred_rf, y_test)$overall["Accuracy"]
 F_meas(y_pred_rf, y_test, beta = 2)
 
 roc_rf <- roc(as.factor(test_set$case), y_pred_rf_p[, 2])
-plot(roc_rf, print.thres="best", type = "line", print.auc = TRUE, grid = TRUE, ylim = c(0,1), col = "blue")
+plot(roc_rf, print.thres="best", type = "line", print.auc = TRUE, grid = TRUE, legacy.axes = TRUE,
+     ylim = c(0,1), col = "Red", main = "Fig 10. ROC for RF")
 ```  
 
-```{r}
+```{r ensemble}
 #Ensemble
 p_knn <- y_pred_knn_p
 p_rf <- y_pred_rf_p / rowSums(y_pred_rf_p) 
@@ -345,13 +360,26 @@ colnames(p_glm) <- c(0, 1)
 p <- (p_rf + p_knn)/2
 y_pred <- factor(apply(p, 1, which.max)-1) 
 confusionMatrix(y_pred, y_test)
-confusionMatrix(y_pred, y_test)$overall["Accuracy"] 
 F_meas(y_pred, y_test, beta = 2)
 
 roc_es <- roc(as.factor(test_set$case), p[, 2])
-plot(roc_es, print.thres="best", type = "line", print.auc = TRUE, grid = TRUE, ylim = c(0,1), col = "green")
+plot(roc_es, print.thres="best", type = "line", print.auc = TRUE, grid = TRUE, legacy.axes = TRUE,
+     ylim = c(0,1), col = "Red", main = "Fig 11. ROC for Ensemble of RF & KNN")
 ```  
-```{r}
+
+
+```{r summary}
+#Combine ROCs
+ggroc(list(roc_glm, roc_pcaknn, roc_knn, roc_rf, roc_es), legacy.axes = TRUE) + 
+  theme_linedraw() + 
+  ggtitle("Fig 12. ROCs for all algorithms") +
+  geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1), color="grey", linetype="dashed") +
+  scale_colour_discrete(labels = c("PCA + Logistic", "PCA + KNN", "KNN", "Random forest", "Ensemble")) +
+  labs(color = "Models")
+```
+
+```{r summary-table}
+#Create a summary table
 summary <- data.frame()
 summary[1,1] <- round(confusionMatrix(y_pred_glm, y_test)$byClass[1], 3)
 summary[1,2] <- round(confusionMatrix(y_pred_glm, y_test)$byClass[2], 3)
@@ -383,23 +411,13 @@ summary[5,3] <- round(confusionMatrix(y_pred, y_test)$overall["Accuracy"], 3)
 summary[5,4] <- round(F_meas(y_pred, y_test, beta = 2), 3)
 summary[5,5] <- round(roc_es$auc, 3)
 
-rownames(summary) <- c("PCA + GLM", "PCA + KNN", "KNN", "Random forest", "Ensemble of KNN & RF")
+rownames(summary) <- c("PCA + Logistic", "PCA + KNN", "KNN", "Random forest", "Ensemble of KNN & RF")
 colnames(summary) <- c("Sensitivity", "Specificity", "Overall accuracy", "F_1 score", "AUC")
 
 summary %>%
-  kbl() %>%
-  kable_material(c("striped"))
-
-ggroc(list(roc_glm, roc_pcaknn, roc_knn, roc_rf, roc_es), legacy.axes = TRUE) + 
-  theme_linedraw() + 
-  ggtitle("ROC") +
-  geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1), color="grey", linetype="dashed") +
-  scale_colour_discrete(labels = c("PCA + Logistic", "PCA + KNN", "KNN", "Random forest", "Ensemble")) +
-  labs(color = "Models")
-  
+  kbl(caption = "Table 1. Summary of performance measures for all algorithms") %>%
+  kable_material(c("striped")) 
 ```
-
-
 
 
 

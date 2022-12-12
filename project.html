@@ -34,6 +34,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
@@ -345,7 +347,8 @@ arbitrarily selected value. So I removed these two potential predictors
 from my analyses. Finally, for variables with less than 10% missing
 data, I replaced the missing values with the median of the non-missing
 data. The cleaned <code>main</code> dataset had 603 rows and 1522
-columns.</p>
+columns. The first 6 rows of the cleaned <code>main</code> dataset was
+printed in the Appendix.</p>
 <p>I then preprocessed the data to remove non-informative predictors
 with near-zero variances. Given that I planned to train as least one of
 my algorithms with regression, it would be better to have more
@@ -359,8 +362,8 @@ metabolite values back to the original scale and used rank-based inverse
 normal transformation (INT) to normalized the distributions instead. As
 examples, histograms showing the distributions of oleoylcarnitine
 (C18:1) and S-methylcysteine sulfoxide before and after the
-transformation were shown. I ended up having 840 predictors normalized
-successfully.</p>
+transformation were shown (Figure 1-2). I ended up having 840 predictors
+normalized successfully.</p>
 </div>
 <div id="methodologies-to-use" class="section level3">
 <h3>Methodologies to use</h3>
@@ -389,33 +392,40 @@ the model parameters.</p>
 <h2><strong>Results</strong></h2>
 <p>For all the model training and fitting, I partitioned the
 <code>main</code> dataset, which includes IHD case status and all
-predictors, into a training and a testing dataset. Matrices for
-predictors and cases were also created. I then train and assess the
-models with the following 4 approaches: 1) PCA + logistic regression; 2)
-PCA + KNN; 3) KNN; 4) Random forest.</p>
+predictors, into a training (<code>train_set</code>) and a testing
+(<code>test_set</code>) dataset. Matrices for predictors and cases were
+also created. I then train and assess the models with the following 4
+approaches: 1) Logistic regression with principle components as
+predictors (PCA + Logistic); 2) K-nearest neighbors with principle
+components as predictors (PCA + KNN); 3) K-nearest neighbors with serum
+metabolites, cardiometabolic biomarkers, and self-reported phenotypic
+data as predictors (KNN); and 4) Random forest with serum metabolites,
+cardiometabolic biomarkers, and self-reported phenotypic data as
+predictors (RF).</p>
 <div id="pca-logistic-regression" class="section level3">
-<h3>PCA + logistic regression</h3>
-<p>The PCA in the training set generated 483 principle components (PC)
+<h3>PCA + Logistic regression</h3>
+<p>The PCA in the training set generated 483 principle components (PCs)
 from 1422 predictors including age, gender, fasting plasma
 triglycerides, adiponectin, and CRP, systolic and diastolic blood
 pressure, and 1415 inverse normal transformed serum metabolites. After
 evaluating the proportion of variance explained by each PC, I selected
 the first 69 PCs that account for 70% of the total variance as new
-predictors. I fitted a logistic regression with IHD cases as the
-dependent variable and the 69 PCs as the independent variables. For the
-logistic regression, there was no model parameter to tune. To make
-predictions in the testing set, I used the PC rotations to transform all
-1422 predictors in the testing set into 483 PCs and kept the first 69
-PCs. The logistic regression estimates were then used to predict the
-probability of having IHD cases in the testing set. Participants with a
-predicted probability of having IHD over 0.5 were defined as predicted
-IHD cases.</p>
+predictors. Proportion of variance explained by each of the first 69 PCs
+were printed in the Appendix. I fitted a logistic regression with IHD
+cases as the dependent variable and the 69 PCs as the independent
+variables. For the logistic regression, there was no model parameter to
+tune. To make predictions in the testing set, I used the PC rotations to
+transform all 1422 predictors in the testing set into 483 PCs and kept
+the first 69 PCs. The logistic regression estimates were then used to
+predict the probability of having IHD cases in the testing set.
+Participants with a predicted probability of having IHD over 0.5 were
+defined as predicted IHD cases.</p>
 <p>The overall accuracy of my predicted IHD cases from the logistic
 regression was 0.875 with a 95% confidence interval of (0.802, 0.928).
 This algorithm had a sensitivity of 0.892, a specificity of 0.854, and
 an <span class="math inline">\(F_1\)</span> score of 0.890. I also
 plotted the ROC and observed an area under the curve (AUC) of 0.946,
-which was very high.</p>
+which was very high (Figure 3).</p>
 </div>
 <div id="pca-knn" class="section level3">
 <h3>PCA + KNN</h3>
@@ -427,18 +437,19 @@ observations, I did not worry much about the computation time of using
 10-fold cross-validation. I fitted the model with K values from 2 to 100
 with 20 as the increment. After plotting the model accuracy under
 different K values, I was not able to identify a clear optimized K given
-that the curve of accuracy did not go down within the specified K range.
-Therefore, I fitted the model with K values from 5 to 150 with 10 as the
-increment instead. I identified 75 as the K for the maximum model
-accuracy and fitted the model again with this value. The fitted KNN
-model was then used to predict the IHD cases in the testing set.</p>
+that the curve of accuracy did not go down within the specified K range
+(Figure 4a). Therefore, I fitted the model with K values from 5 to 150
+with 10 as the increment instead. I identified 75 as the K for the
+maximum model accuracy and fitted the model again with this value
+(Figure 4b). The fitted KNN model was then used to predict the IHD cases
+in the testing set.</p>
 <p>Using the combination of PCA and KNN, the overall accuracy of my
 predicted IHD cases was 0.842 with a 95% confidence interval of (0.764,
 0.902). Comparing to the algorithm developed with PCA and logistic
 regression, this algorithm had a higher sensitivity of 0.923, a lower
 specificity of 0.746, and a higher <span
 class="math inline">\(F_1\)</span> score of 0.898. I plotted the ROC and
-observed an AUC of 0.889.</p>
+observed an AUC of 0.889 (Figure 5).</p>
 </div>
 <div id="knn" class="section level3">
 <h3>KNN</h3>
@@ -454,14 +465,14 @@ with the 1422 predictors, including 1415 serum metabolites.</p>
 cross-validation with bootstrapping as the resampling scheme to select
 the parameter K again. I found 65 as the K that maximize the model
 accuracy after fitting the model with K values from 5 to 150 with 10 as
-the increment. I then fitted the model in the training set and predicted
-the IHD cases in the testing set. The overall accuracy of my predicted
-IHD cases was 0.800 with a 95% confidence interval of (0.717, 0.868).
-Comparing to the algorithm developed with PCA and KNN, this KNN
-algorithm had a slightly higher sensitivity of 0.939. But the
+the increment (Figure 6). I then fitted the model in the training set
+and predicted the IHD cases in the testing set. The overall accuracy of
+my predicted IHD cases was 0.800 with a 95% confidence interval of
+(0.717, 0.868). Comparing to the algorithm developed with PCA and KNN,
+this KNN algorithm had a slightly higher sensitivity of 0.939. But the
 specificity dropped to 0.636. The <span
 class="math inline">\(F_1\)</span> score was 0.894. I plotted the ROC
-and observed an AUC of 0.897.</p>
+and observed an AUC of 0.897 (Figure 7).</p>
 </div>
 <div id="random-forest" class="section level3">
 <h3>Random forest</h3>
@@ -475,19 +486,20 @@ started training the model with 15 trees and tuning the number of
 predictors to be sampled between 10 and 1000 with 100 as the increment.
 I implemented a 5-fold cross-validation. The plot of error against
 number of trees showed that the accuracy improves as we add more trees
-and stabilized at around 100 trees. In my second attempt, I changed the
-number of trees to be predicted to 100. The plot of accuracy by the
-number of randomly sampled predictors did show a maximum point. However,
-it seems that the range of 10 to 1000 predictors was too large. So I
-further tuned the number of predictors to be sampled from 10 to 500 with
-20 as the increment. It turned out that randomly sample 150 predictors
-and predict 100 trees maximized and stabilized the accuracy of model
-prediction.</p>
+and stabilized at around 100 trees (Figure 8a &amp; 9a). In my second
+attempt, I changed the number of trees to be predicted to 100. The plot
+of accuracy by the number of randomly sampled predictors did show a
+maximum point. However, it seems that the range of 10 to 1000 predictors
+was too large (Figure 8b &amp; 9b). So I further tuned the number of
+predictors to be sampled from 10 to 500 with 20 as the increment. It
+turned out that randomly sample 150 predictors and predict 100 trees
+maximized and stabilized the accuracy of model prediction (Figure 8c
+&amp; 9c).</p>
 <p>The overall accuracy of my predicted IHD cases from the random forest
 model was 0.900 with a 95% confidence interval of (0.832, 0.947). This
 algorithm had a high sensitivity of 0.939, a high specificity of 0.855,
 an high <span class="math inline">\(F_1\)</span> score of 0.927, and a
-high AUC of 0.958.</p>
+high AUC of 0.958 (Figure 10).</p>
 </div>
 </div>
 <div id="conclusion" class="section level2">
@@ -496,9 +508,9 @@ high AUC of 0.958.</p>
 metabolites, cardiometabolic biomarkers, and self-reported phenotypic
 data to predict ischemic heart disease (IHD) status in a European
 population. I obtained my data from a paper published early this year on
-Nature Medicine (Ref). For data preprocessing, I removed observations
-with missing metabolites measures, and predictors with at least around
-30% of missing data. For predictors with small amount of missing data, I
+Nature Medicine (3). For data preprocessing, I removed observations with
+missing metabolites measures, and predictors with at least around 30% of
+missing data. For predictors with small amount of missing data, I
 replaced the missing values with median values. Additionally, predictors
 with near-zero variance were also excluded. I used 4 approaches to train
 my model. The first two approaches used PCA to reduce dimension from
@@ -507,10 +519,10 @@ fitted with the selected 69 PCs. The 3rd approach was also based on KNN
 but fitted the model with the 1422 predictors. The last approach used
 random forest to develop the algorithm. I summarized the sensitivity,
 specificity, overall accuracy, <span class="math inline">\(F_1\)</span>
-score, and AUC of all models in a table. I also conducted an ensemble to
-combine results from the KNN model and random forest model and showed
-the performance at the end of the table. ROC curves were plotted on the
-same figure for comparison.</p>
+score, and AUC of all models in a table (Table 1). I also conducted an
+ensemble to combine results from the KNN model and random forest model
+and showed the performance at the end of the table. ROC curves were
+plotted on the same figure for comparison (Figure 11 &amp; 12).</p>
 <p>According to the table, the two models developed with PCs had lower
 sensitivity than those trained with all predictors. The KNN and random
 forest models both had a very high sensitivity of 0.938. The two models
@@ -527,8 +539,21 @@ Finally, the random forest model had the highest AUC, followed by the
 PCA + KNN model. It is interesting that ensemble of KNN and random
 forest did not further improve the model performance. In conclusion, the
 algorithm developed with random forest performed the best in all
-measures.</p>
-<p>Successful?</p>
+measures (Table 1).</p>
+<p>My analysis that used 4 different approaches to train the algorithm
+is successful. I identified the random forest algorithm as the best
+among the 4 according to all 5 measures. The sensitivity of predicting
+IHD is particularly high. It is particularly important because we don’t
+want to miss any IHD cases if the patient really has IHD. Early
+detection could improve the prognosis and lower mortality. Moreover, the
+high sensitivity of my algorithm is not at the cost of low specificity.
+The specificity is also reasonably high. That could lower the
+probability of identifying healthy people as IHD cases and avoid
+overtreatment. It is also great that a random forest-based algorithm
+does not require extensive data transformation. Future implementation in
+clinical settings could be more efficient. If I have more time to spend
+on this project, I would look for metabolomics data in other populations
+and develop an algorithm that has higher generalizability.</p>
 </div>
 <div id="reference" class="section level2">
 <h2><strong>Reference</strong></h2>
@@ -561,7 +586,7 @@ meta &lt;- read_excel(&quot;/Users/xgu/Documents/Harvard/Fall 2022/BST260/bst260
 demo &lt;- read_excel(&quot;/Users/xgu/Documents/Harvard/Fall 2022/BST260/bst260project/41591_2022_1688_MOESM3_ESM.xlsx&quot;, 
                    sheet = 10, skip = 1, na = &quot;NA&quot;, col_types = c(&quot;text&quot;, &quot;text&quot;, rep(&quot;numeric&quot;, 22), &quot;text&quot;, &quot;text&quot;, &quot;text&quot;))
 
-#Selection and filtering
+#Filter IHD cases and controls, keep phynotypic data and cardiometabolic biomarkers
 demo_new &lt;- demo %&gt;%
   filter(Status %in% c(&quot;IHD372&quot;, &quot;MMC372&quot;)) %&gt;%
   mutate(case = case_when(Status == &quot;MMC372&quot; ~ 0, TRUE ~ 1),
@@ -571,7 +596,8 @@ demo_new &lt;- demo %&gt;%
          sbp = &quot;Systolic blood pressure (mmHg)&quot;, dbp = &quot;Diastolic blood pressure (mmHg)&quot;, 
          lvef = &quot;Left ventricular ejection fraction (%)&quot;, act = &quot;Physical activity (h/week)&quot;) %&gt;%
   select(ID, case, age, tag, adiponectin, crp, sbp, dbp, Gender, lvef, act)
-  
+
+#Filter IHD cases and controls, keep metabolites
 meta_new &lt;- meta %&gt;%
   filter(Status %in% c(&quot;IHD372&quot;, &quot;MMC372&quot;)) %&gt;%
   select(-c(Status))
@@ -579,15 +605,15 @@ meta_new &lt;- meta %&gt;%
 #Merge
 main &lt;- demo_new %&gt;%
   left_join(meta_new, by = &quot;ID&quot;)
-head(main)</code></pre>
-<pre class="r"><code>#Check missing
+
+#Check missing
 pctmiss &lt;- function(x){
   pctmiss &lt;- sum(is.na(x))/length(x)
   return(pctmiss)
 }
 miss &lt;- as.data.frame(sapply(main, pctmiss))
-head(miss)
 
+#Further filtering and missing replacement
 main &lt;- main %&gt;% 
   select(-c(&quot;lvef&quot;, &quot;act&quot;)) %&gt;% 
   filter(acetate != &quot;NA&quot;, spermidine != &quot;NA&quot;) %&gt;%
@@ -597,46 +623,75 @@ main &lt;- main %&gt;%
          sbp = case_when(is.na(sbp) ~ median(sbp, na.rm = TRUE), TRUE ~ sbp),
          dbp = case_when(is.na(dbp) ~ median(dbp, na.rm = TRUE), TRUE ~ dbp))
 head(main)</code></pre>
-<pre class="r"><code>var &lt;- main %&gt;% select(-c(&quot;ID&quot;, &quot;case&quot;))
+<pre><code>## # A tibble: 6 × 1,522
+##   ID          case   age   tag adipon…¹   crp   sbp   dbp Gender acetate acetone
+##   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1 x14MCx1158     0    48 1.00      5.01 0.897  104   60.5      0   -3.91   -3.91
+## 2 x14MCx2932     0    49 1.00      4.03 1.11   111   70        0   -3.91   -3.22
+## 3 x14MCx2498     0    54 1.48      6.26 2.05   106.  68.5      1   -3.51   -3.51
+## 4 x14MCx2237     0    47 0.787     3.44 0.67   138   78        1   -3.91   -4.95
+## 5 x30MCx1828     0    66 0.59     11.0  0.427  110.  65.5      0   -3.91   -3.91
+## 6 x30MCx1314     0    54 1.41      2.6  1.4    128.  75.5      1   -2.81   -3.91
+## # … with 1,511 more variables: artemisin &lt;dbl&gt;, `beta-sitosterol` &lt;dbl&gt;,
+## #   betaine &lt;dbl&gt;, `betaine-aldehyde` &lt;dbl&gt;, butyrylcarnitine &lt;dbl&gt;,
+## #   catechol &lt;dbl&gt;, cellotetraose &lt;dbl&gt;, choline &lt;dbl&gt;, `D-trehalose` &lt;dbl&gt;,
+## #   `D-lyxose` &lt;dbl&gt;, `D-malate` &lt;dbl&gt;, `D-sorbitol` &lt;dbl&gt;, `D-threitol` &lt;dbl&gt;,
+## #   decanoylcarnitine &lt;dbl&gt;, glyceraldehyde &lt;dbl&gt;, ethanol &lt;dbl&gt;,
+## #   ethanolamine &lt;dbl&gt;, formate &lt;dbl&gt;, glucoheptonate &lt;dbl&gt;, glycolate &lt;dbl&gt;,
+## #   halostachine &lt;dbl&gt;, hydroquinone &lt;dbl&gt;, isovalerylcarnitine &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>#Keep the predictors
+var &lt;- main %&gt;% select(-c(&quot;ID&quot;, &quot;case&quot;))
 
-#Preprocessing
+#Identify non-informative predictors with very low variance
 nzv &lt;- nearZeroVar(var)
 col_index &lt;- setdiff(1:ncol(var), nzv)
-length(col_index)
-
+length(col_index)</code></pre>
+<pre><code>## [1] 1422</code></pre>
+<pre class="r"><code>#Remove non-informative predictors
 var_proc &lt;- var[,col_index]
 
-#check normality
+#Check normality
 normality &lt;- data.frame()
 for (i in 1:length(colnames(var_proc))){
   normality[i, 1] &lt;- colnames(var_proc)[i]
   normality[i, 2] &lt;- shapiro.test(pull(var_proc[,i]))$p.value
   colnames(normality) &lt;- c(&quot;metabolites&quot;, &quot;shapiro.p&quot;)
 }
-table(ifelse(normality$shapiro.p &gt;0.05, 1, 0))
-#which(normality$shapiro.p &gt; 0.05)
+table(ifelse(normality$shapiro.p &gt;0.05, 1, 0)) #Only 101 normally distributed predictors</code></pre>
+<pre><code>## 
+##    0    1 
+## 1321  101</code></pre>
+<pre class="r"><code>#which(normality$shapiro.p &gt; 0.05)
 
-#Log transformation not work
+#Exponentiate the log metabolites
 m &lt;- as.matrix(var_proc[,8:1422])
 exp_m &lt;- exp(m)
 var_proc_exp &lt;- cbind(var_proc[,1:7], as.data.frame(exp_m))
 
+#Inverse-normal-transform the predictors
 var_proc_int &lt;- as.data.frame(sapply(var_proc_exp, RankNorm))
 
-#check normality again!
+#Check normality again
 normality_int &lt;- data.frame()
 for (i in 1:length(colnames(tibble(var_proc_int)))){
   normality_int[i, 1] &lt;- colnames(tibble(var_proc_int))[i]
   normality_int[i, 2] &lt;- shapiro.test(pull(tibble(var_proc_int)[,i]))$p.value
   colnames(normality_int) &lt;- c(&quot;metabolites&quot;, &quot;shapiro.p&quot;)
 }
-table(ifelse(normality_int$shapiro.p &gt;0.05, 1, 0))
-#which(normality_int$shapiro.p &gt; 0.05)
+table(ifelse(normality_int$shapiro.p &gt;0.05, 1, 0)) #Now have 840 normally distributed predictors</code></pre>
+<pre><code>## 
+##   0   1 
+## 582 840</code></pre>
+<pre class="r"><code>#which(normality_int$shapiro.p &gt; 0.05)
 
-hist(var_proc_exp$`oleoylcarnitine (C18:1)`, main = &quot;Histogram of oleoylcarnitine (C18:1)&quot;, xlab = &quot;Oleoylcarnitine (C18:1)&quot;)
-hist(var_proc_int$`oleoylcarnitine (C18:1)`, main = &quot;Histogram of INT-transformed oleoylcarnitine (C18:1)&quot;, xlab = &quot;INT(Oleoylcarnitine (C18:1))&quot;)
-hist(var_proc_exp$`S-methylcysteine sulfoxide`, main = &quot;Histogram of S-methylcysteine sulfoxide&quot;, xlab = &quot;S-methylcysteine sulfoxide&quot;)
-hist(var_proc_int$`S-methylcysteine sulfoxide`, main = &quot;Histogram of INT-transformed S-methylcysteine sulfoxide&quot;, xlab = &quot;INT(S-methylcysteine sulfoxide)&quot;)   </code></pre>
+hist(var_proc_exp$`oleoylcarnitine (C18:1)`, main = &quot;Fig 1a. Histogram of oleoylcarnitine&quot;, xlab = &quot;Oleoylcarnitine (C18:1)&quot;)</code></pre>
+<p><img src="project_files/figure-html/preprocessing-1.png" width="50%" height="50%" /></p>
+<pre class="r"><code>hist(var_proc_int$`oleoylcarnitine (C18:1)`, main = &quot;Fig 1b. Histogram of INT-transformed oleoylcarnitine (C18:1))&quot;, xlab = &quot;INT(Oleoylcarnitine (C18:1))&quot;)</code></pre>
+<p><img src="project_files/figure-html/preprocessing-2.png" width="50%" height="50%" /></p>
+<pre class="r"><code>hist(var_proc_exp$`S-methylcysteine sulfoxide`, main = &quot;Fig 2a. Histogram of S-methylcysteine sulfoxide&quot;, xlab = &quot;S-methylcysteine sulfoxide&quot;)</code></pre>
+<p><img src="project_files/figure-html/preprocessing-3.png" width="50%" height="50%" /></p>
+<pre class="r"><code>hist(var_proc_int$`S-methylcysteine sulfoxide`, main = &quot;Fig 2b. Histogram of INT-transformed S-methylcysteine sulfoxide&quot;, xlab = &quot;INT(S-methylcysteine sulfoxide)&quot;)   </code></pre>
+<p><img src="project_files/figure-html/preprocessing-4.png" width="50%" height="50%" /></p>
 <pre class="r"><code>#Split data
 set.seed(34324)
 main_new &lt;- cbind(main[,1:2], var_proc_int)
@@ -649,17 +704,31 @@ x_train &lt;- as.matrix(train_set[,3:1424])
 y_train &lt;- factor(train_set$case)
 x_test &lt;- as.matrix(test_set[,3:1424])
 y_test &lt;- factor(test_set$case)</code></pre>
-<pre class="r"><code>#######PCA
+<pre class="r"><code>#PCA
 col_means &lt;- colMeans(x_train)
 
 pca &lt;- prcomp(x_train)
 s_pca_3 &lt;- summary(pca)$importance[3,] ##69 pc
-head(s_pca_3, 69)
-
+head(s_pca_3, 69)</code></pre>
+<pre><code>##     PC1     PC2     PC3     PC4     PC5     PC6     PC7     PC8     PC9    PC10 
+## 0.09528 0.14187 0.17858 0.21450 0.24215 0.26855 0.29403 0.31393 0.33268 0.35060 
+##    PC11    PC12    PC13    PC14    PC15    PC16    PC17    PC18    PC19    PC20 
+## 0.36595 0.37976 0.39264 0.40522 0.41732 0.42849 0.43910 0.44940 0.45886 0.46815 
+##    PC21    PC22    PC23    PC24    PC25    PC26    PC27    PC28    PC29    PC30 
+## 0.47727 0.48587 0.49381 0.50149 0.50892 0.51619 0.52337 0.53013 0.53645 0.54261 
+##    PC31    PC32    PC33    PC34    PC35    PC36    PC37    PC38    PC39    PC40 
+## 0.54863 0.55446 0.56017 0.56585 0.57135 0.57666 0.58171 0.58672 0.59164 0.59644 
+##    PC41    PC42    PC43    PC44    PC45    PC46    PC47    PC48    PC49    PC50 
+## 0.60116 0.60573 0.61013 0.61444 0.61872 0.62298 0.62701 0.63098 0.63494 0.63877 
+##    PC51    PC52    PC53    PC54    PC55    PC56    PC57    PC58    PC59    PC60 
+## 0.64255 0.64624 0.64986 0.65345 0.65694 0.66041 0.66380 0.66717 0.67048 0.67372 
+##    PC61    PC62    PC63    PC64    PC65    PC66    PC67    PC68    PC69 
+## 0.67691 0.68005 0.68315 0.68620 0.68922 0.69224 0.69519 0.69808 0.70096</code></pre>
+<pre class="r"><code>#New PC predictors
 pc &lt;- 69
 x_train_pc &lt;- pca$x[,1:pc] </code></pre>
-<pre class="r"><code>#####PCA + glm
-glm_tmp &lt;- as.data.frame(cbind(train_set$case, x_train_pc))
+<pre class="r"><code>#PCA + Logistic
+glm_tmp &lt;- as.data.frame(cbind(train_set$case, x_train_pc)) #Merge cases with PCs
 glm_tmp &lt;- glm_tmp %&gt;% rename(case = V1)
 fit_glm &lt;- glm(case ~., data = glm_tmp, family = &quot;binomial&quot;)
 
@@ -667,47 +736,110 @@ x_test_pc_pre &lt;- sweep(x_test,2,col_means) %*% pca$rotation
 x_test_pc &lt;- x_test_pc_pre[,1:pc]
 y_prob &lt;- predict(fit_glm, as.data.frame(x_test_pc), type = &quot;response&quot;)
 y_pred_glm &lt;- factor(ifelse(y_prob &gt; 0.5, 1, 0))
-confusionMatrix(y_pred_glm, y_test)$overall[[&quot;Accuracy&quot;]] 
-F_meas(y_pred_glm, y_test, beta = 2)
-
-#ROC
+confusionMatrix(y_pred_glm, y_test)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 58  8
+##          1  7 47
+##                                           
+##                Accuracy : 0.875           
+##                  95% CI : (0.8022, 0.9283)
+##     No Information Rate : 0.5417          
+##     P-Value [Acc &gt; NIR] : 5.161e-15       
+##                                           
+##                   Kappa : 0.7479          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 1               
+##                                           
+##             Sensitivity : 0.8923          
+##             Specificity : 0.8545          
+##          Pos Pred Value : 0.8788          
+##          Neg Pred Value : 0.8704          
+##              Prevalence : 0.5417          
+##          Detection Rate : 0.4833          
+##    Detection Prevalence : 0.5500          
+##       Balanced Accuracy : 0.8734          
+##                                           
+##        &#39;Positive&#39; Class : 0               
+## </code></pre>
+<pre class="r"><code>F_meas(y_pred_glm, y_test, beta = 2) #F_1 score with beta=2</code></pre>
+<pre><code>## [1] 0.8895706</code></pre>
+<pre class="r"><code>#ROC
 roc_glm &lt;- roc(as.factor(test_set$case), y_prob)
 plot(roc_glm, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, legacy.axes = TRUE,
-     grid = TRUE, ylim = c(0,1), xlim = c(1,0), col = &quot;Red&quot;, main = &quot;ROC for PCA + GLM&quot;) 
-
-
-#######PCA + KNN
+     grid = TRUE, ylim = c(0,1), xlim = c(1,0), col = &quot;Red&quot;, main = &quot;Fig 3. ROC for PCA + Logistic&quot;) </code></pre>
+<p><img src="project_files/figure-html/pcaglm-1.png" width="50%" height="50%" /></p>
+<pre class="r"><code>#PCA + KNN
 set.seed(5436)
 b &lt;- 10
 control_pca &lt;- trainControl(method = &quot;cv&quot;, number = b, p = .9) 
 train_pcaknn &lt;- train(x_train_pc, y_train,  
                    method = &quot;knn&quot;,  
-                   tuneGrid = data.frame(k = seq(2,100,20)), #
+                   tuneGrid = data.frame(k = seq(2,100,20)),
                    trControl = control_pca) 
-ggplot(train_pcaknn, highlight = TRUE)
-
+ggplot(train_pcaknn, highlight = TRUE) +
+  ggtitle(&quot;Fig 4a. Accuracy at different K values (PCA+KNN)&quot;)</code></pre>
+<p><img src="project_files/figure-html/pcaknn-1.png" width="50%" height="50%" /></p>
+<pre class="r"><code>#Second attempt
 set.seed(5432)
 b &lt;- 10
 control_pca &lt;- trainControl(method = &quot;cv&quot;, number = b, p = .9) 
 train_pcaknn2 &lt;- train(x_train_pc, y_train,  
                    method = &quot;knn&quot;,  
-                   tuneGrid = data.frame(k = seq(5,150,10)), #
+                   tuneGrid = data.frame(k = seq(5,150,10)),
                    trControl = control_pca) 
-ggplot(train_pcaknn2, highlight = TRUE)
-
-train_pcaknn2$bestTune 
-train_pcaknn2$results$Accuracy
-fit_pcaknn &lt;- knn3(x_train_pc, y_train, k = train_pcaknn2$bestTune$k) 
+ggplot(train_pcaknn2, highlight = TRUE) +
+  ggtitle(&quot;Fig 4b. Accuracy at different K values (PCA+KNN, 2nd attempt)&quot;)</code></pre>
+<p><img src="project_files/figure-html/pcaknn-2.png" width="50%" height="50%" /></p>
+<pre class="r"><code>train_pcaknn2$bestTune </code></pre>
+<pre><code>##    k
+## 8 75</code></pre>
+<pre class="r"><code>train_pcaknn2$results$Accuracy</code></pre>
+<pre><code>##  [1] 0.7554422 0.7946003 0.7905612 0.7843963 0.7908163 0.8010204 0.7968537
+##  [8] 0.8094813 0.7928571 0.7948980 0.7886480 0.7740646 0.7720238 0.7636480
+## [15] 0.7657738</code></pre>
+<pre class="r"><code>fit_pcaknn &lt;- knn3(x_train_pc, y_train, k = train_pcaknn2$bestTune$k) 
 
 y_pred_pcaknn &lt;- predict(fit_pcaknn, x_test_pc, type = &quot;class&quot;)
 y_pred_pcaknn_p &lt;- predict(fit_pcaknn, x_test_pc, type = &quot;prob&quot;)
-confusionMatrix(y_pred_pcaknn, y_test)$overall[&quot;Accuracy&quot;]
-F_meas(y_pred_pcaknn, y_test, beta = 2)
-
-#ROC
+confusionMatrix(y_pred_pcaknn, y_test)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 60 15
+##          1  5 40
+##                                           
+##                Accuracy : 0.8333          
+##                  95% CI : (0.7544, 0.8951)
+##     No Information Rate : 0.5417          
+##     P-Value [Acc &gt; NIR] : 1.512e-11       
+##                                           
+##                   Kappa : 0.6596          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 0.04417         
+##                                           
+##             Sensitivity : 0.9231          
+##             Specificity : 0.7273          
+##          Pos Pred Value : 0.8000          
+##          Neg Pred Value : 0.8889          
+##              Prevalence : 0.5417          
+##          Detection Rate : 0.5000          
+##    Detection Prevalence : 0.6250          
+##       Balanced Accuracy : 0.8252          
+##                                           
+##        &#39;Positive&#39; Class : 0               
+## </code></pre>
+<pre class="r"><code>F_meas(y_pred_pcaknn, y_test, beta = 2)</code></pre>
+<pre><code>## [1] 0.8955224</code></pre>
+<pre class="r"><code>#ROC
 roc_pcaknn &lt;- roc(as.factor(test_set$case), y_pred_pcaknn_p[, 2])
-plot(roc_pcaknn, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, grid = TRUE, ylim = c(0,1), col = &quot;Red&quot;)</code></pre>
-<pre class="r"><code>#####KNN
+plot(roc_pcaknn, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, legacy.axes = TRUE,
+     grid = TRUE, ylim = c(0,1), col = &quot;Red&quot;, main = &quot;Fig 5. ROC for PCA + KNN&quot;)</code></pre>
+<p><img src="project_files/figure-html/pcaknn-3.png" width="50%" height="50%" /></p>
+<pre class="r"><code>#KNN
 set.seed(3245)
 b &lt;- 10
 control_knn &lt;- trainControl(method = &quot;cv&quot;, number = b, p = .9) 
@@ -715,21 +847,56 @@ train_knn &lt;- train(x_train, y_train,
                    method = &quot;knn&quot;,  
                    tuneGrid = data.frame(k = seq(5,150,10)), 
                    trControl = control_knn) 
-ggplot(train_knn, highlight = TRUE)
-train_knn$bestTune 
-train_knn$results$Accuracy
-fit_knn &lt;- knn3(x_train, y_train, k = train_knn$bestTune$k) 
+ggplot(train_knn, highlight = TRUE) +
+  ggtitle(&quot;Fig 6. Accuracy at different K values (KNN)&quot;)</code></pre>
+<p><img src="project_files/figure-html/knn-1.png" width="50%" height="50%" /></p>
+<pre class="r"><code>train_knn$bestTune </code></pre>
+<pre><code>##    k
+## 7 65</code></pre>
+<pre class="r"><code>train_knn$results$Accuracy</code></pre>
+<pre><code>##  [1] 0.7616026 0.7907340 0.7910371 0.7846577 0.7889112 0.7870016 0.7972038
+##  [8] 0.7906508 0.7825337 0.7762375 0.7599978 0.7454977 0.7474092 0.7431557
+## [15] 0.7494057</code></pre>
+<pre class="r"><code>fit_knn &lt;- knn3(x_train, y_train, k = train_knn$bestTune$k) 
 
 y_pred_knn &lt;- predict(fit_knn, x_test, type = &quot;class&quot;)
 y_pred_knn_p &lt;- predict(fit_knn, x_test, type = &quot;prob&quot;)
-confusionMatrix(y_pred_knn, y_test)
-confusionMatrix(y_pred_knn, y_test)$overall[&quot;Accuracy&quot;]
-F_meas(y_pred_knn, y_test, beta = 2)
-
-#ROC
+confusionMatrix(y_pred_knn, y_test)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 61 20
+##          1  4 35
+##                                           
+##                Accuracy : 0.8             
+##                  95% CI : (0.7172, 0.8675)
+##     No Information Rate : 0.5417          
+##     P-Value [Acc &gt; NIR] : 3.087e-09       
+##                                           
+##                   Kappa : 0.588           
+##                                           
+##  Mcnemar&#39;s Test P-Value : 0.0022          
+##                                           
+##             Sensitivity : 0.9385          
+##             Specificity : 0.6364          
+##          Pos Pred Value : 0.7531          
+##          Neg Pred Value : 0.8974          
+##              Prevalence : 0.5417          
+##          Detection Rate : 0.5083          
+##    Detection Prevalence : 0.6750          
+##       Balanced Accuracy : 0.7874          
+##                                           
+##        &#39;Positive&#39; Class : 0               
+## </code></pre>
+<pre class="r"><code>F_meas(y_pred_knn, y_test, beta = 2)</code></pre>
+<pre><code>## [1] 0.8944282</code></pre>
+<pre class="r"><code>#ROC
 roc_knn &lt;- roc(as.factor(test_set$case), y_pred_knn_p[, 2])
-plot(roc_knn, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, grid = TRUE, ylim = c(0,1))</code></pre>
-<pre class="r"><code>##########Random forest
+plot(roc_knn, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, grid = TRUE, legacy.axes = TRUE,
+     ylim = c(0,1), col = &quot;Red&quot;, main = &quot;Fig 7. ROC for KNN&quot;)</code></pre>
+<p><img src="project_files/figure-html/knn-2.png" width="50%" height="50%" /></p>
+<pre class="r"><code>#Random forest
 set.seed(4536)
 b &lt;- 5
 control_rf &lt;- trainControl(method=&quot;cv&quot;, number = b, p = .9) 
@@ -738,16 +905,21 @@ train_rf &lt;-  train(x_train, y_train,
                    ntree = 15,
                    trControl = control_rf, 
                    tuneGrid = data.frame(mtry = seq(10, 1000, 100))) 
-ggplot(train_rf, highlight = TRUE)
-train_rf$bestTune
-train_rf$results$Accuracy
-fit_rf &lt;- randomForest(x_train, y_train,  
+ggplot(train_rf, highlight = TRUE) +
+  ggtitle(&quot;Fig 8a. Accuracy at different number of selected predictors&quot;)</code></pre>
+<p><img src="project_files/figure-html/rf-1.png" width="50%" height="50%" /></p>
+<pre class="r"><code>train_rf$bestTune</code></pre>
+<pre><code>##   mtry
+## 4  310</code></pre>
+<pre class="r"><code>train_rf$results$Accuracy</code></pre>
+<pre><code>##  [1] 0.7660223 0.8343857 0.8550473 0.8613187 0.8385954 0.8405713 0.8384880
+##  [8] 0.8448024 0.8550902 0.8448239</code></pre>
+<pre class="r"><code>fit_rf &lt;- randomForest(x_train, y_train,  
                        mtry = train_rf$bestTune$mtry,
                        minNode = 10) 
-plot(fit_rf) 
-
-
-set.seed(6543)
+plot(fit_rf, main = &quot;Fig 9a. Error by number of trees&quot;) </code></pre>
+<p><img src="project_files/figure-html/rf-2.png" width="50%" height="50%" /></p>
+<pre class="r"><code>set.seed(6543)
 b &lt;- 5
 control_rf &lt;- trainControl(method=&quot;cv&quot;, number = b, p = .9) 
 train_rf2 &lt;-  train(x_train, y_train,  
@@ -755,16 +927,21 @@ train_rf2 &lt;-  train(x_train, y_train,
                    ntree = 100,
                    trControl = control_rf, 
                    tuneGrid = data.frame(mtry = seq(10, 1000, 100))) 
-ggplot(train_rf2, highlight = TRUE)
-train_rf2$bestTune
-train_rf2$results$Accuracy
-fit_rf2 &lt;- randomForest(x_train, y_train,  
+ggplot(train_rf2, highlight = TRUE) +
+  ggtitle(&quot;Fig 8b. Accuracy at different number of selected predictors (2nd attempt)&quot;)</code></pre>
+<p><img src="project_files/figure-html/rf-3.png" width="50%" height="50%" /></p>
+<pre class="r"><code>train_rf2$bestTune</code></pre>
+<pre><code>##   mtry
+## 2  110</code></pre>
+<pre class="r"><code>train_rf2$results$Accuracy</code></pre>
+<pre><code>##  [1] 0.8239905 0.8695876 0.8468213 0.8571521 0.8613402 0.8509880 0.8529854
+##  [8] 0.8549828 0.8550258 0.8529639</code></pre>
+<pre class="r"><code>fit_rf2 &lt;- randomForest(x_train, y_train,  
                        mtry = train_rf2$bestTune$mtry,
                        minNode = 10) 
-plot(fit_rf2) 
-
-
-set.seed(232)
+plot(fit_rf2, main = &quot;Fig 9b. Error by number of trees (2nd attempt)&quot;) </code></pre>
+<p><img src="project_files/figure-html/rf-4.png" width="50%" height="50%" /></p>
+<pre class="r"><code>set.seed(232)
 b &lt;- 5
 control_rf &lt;- trainControl(method=&quot;cv&quot;, number = b, p = .9) 
 train_rf3 &lt;-  train(x_train, y_train,  
@@ -772,22 +949,58 @@ train_rf3 &lt;-  train(x_train, y_train,
                    ntree = 100,
                    trControl = control_rf, 
                    tuneGrid = data.frame(mtry = seq(10, 500, 20))) 
-ggplot(train_rf3, highlight = TRUE)
-train_rf3$bestTune
-train_rf3$results$Accuracy
-fit_rf3 &lt;- randomForest(x_train, y_train,  
+ggplot(train_rf3, highlight = TRUE) +
+  ggtitle(&quot;Fig 8c. Accuracy at different number of selected predictors (3rd attempt)&quot;)</code></pre>
+<p><img src="project_files/figure-html/rf-5.png" width="50%" height="50%" /></p>
+<pre class="r"><code>train_rf3$bestTune</code></pre>
+<pre><code>##   mtry
+## 8  150</code></pre>
+<pre class="r"><code>train_rf3$results$Accuracy</code></pre>
+<pre><code>##  [1] 0.8220576 0.8531787 0.8593643 0.8592998 0.8656143 0.8572595 0.8531787
+##  [8] 0.8759021 0.8613832 0.8573239 0.8634450 0.8593428 0.8592998 0.8490120
+## [15] 0.8593428 0.8573454 0.8551976 0.8676117 0.8469502 0.8552405 0.8593213
+## [22] 0.8675687 0.8614261 0.8573454 0.8490120</code></pre>
+<pre class="r"><code>fit_rf3 &lt;- randomForest(x_train, y_train,  
                        mtry = train_rf3$bestTune$mtry,
                        minNode = 10) 
-plot(fit_rf3) 
-
-y_pred_rf &lt;- predict(fit_rf3, x_test, type = &quot;class&quot;)
+plot(fit_rf3, main = &quot;Fig 9c. Error by number of trees (3rd attempt)&quot;) </code></pre>
+<p><img src="project_files/figure-html/rf-6.png" width="50%" height="50%" /></p>
+<pre class="r"><code>y_pred_rf &lt;- predict(fit_rf3, x_test, type = &quot;class&quot;)
 y_pred_rf_p &lt;- predict(fit_rf3, x_test, type = &quot;prob&quot;)
-confusionMatrix(y_pred_rf, y_test)
-confusionMatrix(y_pred_rf, y_test)$overall[&quot;Accuracy&quot;]
-F_meas(y_pred_rf, y_test, beta = 2)
-
-roc_rf &lt;- roc(as.factor(test_set$case), y_pred_rf_p[, 2])
-plot(roc_rf, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, grid = TRUE, ylim = c(0,1), col = &quot;blue&quot;)</code></pre>
+confusionMatrix(y_pred_rf, y_test)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 60  6
+##          1  5 49
+##                                           
+##                Accuracy : 0.9083          
+##                  95% CI : (0.8419, 0.9533)
+##     No Information Rate : 0.5417          
+##     P-Value [Acc &gt; NIR] : &lt;2e-16          
+##                                           
+##                   Kappa : 0.8151          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 1               
+##                                           
+##             Sensitivity : 0.9231          
+##             Specificity : 0.8909          
+##          Pos Pred Value : 0.9091          
+##          Neg Pred Value : 0.9074          
+##              Prevalence : 0.5417          
+##          Detection Rate : 0.5000          
+##    Detection Prevalence : 0.5500          
+##       Balanced Accuracy : 0.9070          
+##                                           
+##        &#39;Positive&#39; Class : 0               
+## </code></pre>
+<pre class="r"><code>F_meas(y_pred_rf, y_test, beta = 2)</code></pre>
+<pre><code>## [1] 0.9202454</code></pre>
+<pre class="r"><code>roc_rf &lt;- roc(as.factor(test_set$case), y_pred_rf_p[, 2])
+plot(roc_rf, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, grid = TRUE, legacy.axes = TRUE,
+     ylim = c(0,1), col = &quot;Red&quot;, main = &quot;Fig 10. ROC for RF&quot;)</code></pre>
+<p><img src="project_files/figure-html/rf-7.png" width="50%" height="50%" /></p>
 <pre class="r"><code>#Ensemble
 p_knn &lt;- y_pred_knn_p
 p_rf &lt;- y_pred_rf_p / rowSums(y_pred_rf_p) 
@@ -796,13 +1009,50 @@ p_glm &lt;- as.matrix(cbind(1-y_prob, y_prob))
 colnames(p_glm) &lt;- c(0, 1)
 p &lt;- (p_rf + p_knn)/2
 y_pred &lt;- factor(apply(p, 1, which.max)-1) 
-confusionMatrix(y_pred, y_test)
-confusionMatrix(y_pred, y_test)$overall[&quot;Accuracy&quot;] 
-F_meas(y_pred, y_test, beta = 2)
-
-roc_es &lt;- roc(as.factor(test_set$case), p[, 2])
-plot(roc_es, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, grid = TRUE, ylim = c(0,1), col = &quot;green&quot;)</code></pre>
-<pre class="r"><code>summary &lt;- data.frame()
+confusionMatrix(y_pred, y_test)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  0  1
+##          0 60  9
+##          1  5 46
+##                                          
+##                Accuracy : 0.8833         
+##                  95% CI : (0.812, 0.9347)
+##     No Information Rate : 0.5417         
+##     P-Value [Acc &gt; NIR] : 8.505e-16      
+##                                          
+##                   Kappa : 0.7637         
+##                                          
+##  Mcnemar&#39;s Test P-Value : 0.4227         
+##                                          
+##             Sensitivity : 0.9231         
+##             Specificity : 0.8364         
+##          Pos Pred Value : 0.8696         
+##          Neg Pred Value : 0.9020         
+##              Prevalence : 0.5417         
+##          Detection Rate : 0.5000         
+##    Detection Prevalence : 0.5750         
+##       Balanced Accuracy : 0.8797         
+##                                          
+##        &#39;Positive&#39; Class : 0              
+## </code></pre>
+<pre class="r"><code>F_meas(y_pred, y_test, beta = 2)</code></pre>
+<pre><code>## [1] 0.9118541</code></pre>
+<pre class="r"><code>roc_es &lt;- roc(as.factor(test_set$case), p[, 2])
+plot(roc_es, print.thres=&quot;best&quot;, type = &quot;line&quot;, print.auc = TRUE, grid = TRUE, legacy.axes = TRUE,
+     ylim = c(0,1), col = &quot;Red&quot;, main = &quot;Fig 11. ROC for Ensemble of RF &amp; KNN&quot;)</code></pre>
+<p><img src="project_files/figure-html/ensemble-1.png" width="50%" height="50%" /></p>
+<pre class="r"><code>#Combine ROCs
+ggroc(list(roc_glm, roc_pcaknn, roc_knn, roc_rf, roc_es), legacy.axes = TRUE) + 
+  theme_linedraw() + 
+  ggtitle(&quot;Fig 12. ROCs for all algorithms&quot;) +
+  geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1), color=&quot;grey&quot;, linetype=&quot;dashed&quot;) +
+  scale_colour_discrete(labels = c(&quot;PCA + Logistic&quot;, &quot;PCA + KNN&quot;, &quot;KNN&quot;, &quot;Random forest&quot;, &quot;Ensemble&quot;)) +
+  labs(color = &quot;Models&quot;)</code></pre>
+<p><img src="project_files/figure-html/summary-1.png" width="50%" height="50%" /></p>
+<pre class="r"><code>#Create a summary table
+summary &lt;- data.frame()
 summary[1,1] &lt;- round(confusionMatrix(y_pred_glm, y_test)$byClass[1], 3)
 summary[1,2] &lt;- round(confusionMatrix(y_pred_glm, y_test)$byClass[2], 3)
 summary[1,3] &lt;- round(confusionMatrix(y_pred_glm, y_test)$overall[&quot;Accuracy&quot;], 3)
@@ -833,19 +1083,140 @@ summary[5,3] &lt;- round(confusionMatrix(y_pred, y_test)$overall[&quot;Accuracy&
 summary[5,4] &lt;- round(F_meas(y_pred, y_test, beta = 2), 3)
 summary[5,5] &lt;- round(roc_es$auc, 3)
 
-rownames(summary) &lt;- c(&quot;PCA + GLM&quot;, &quot;PCA + KNN&quot;, &quot;KNN&quot;, &quot;Random forest&quot;, &quot;Ensemble of KNN &amp; RF&quot;)
+rownames(summary) &lt;- c(&quot;PCA + Logistic&quot;, &quot;PCA + KNN&quot;, &quot;KNN&quot;, &quot;Random forest&quot;, &quot;Ensemble of KNN &amp; RF&quot;)
 colnames(summary) &lt;- c(&quot;Sensitivity&quot;, &quot;Specificity&quot;, &quot;Overall accuracy&quot;, &quot;F_1 score&quot;, &quot;AUC&quot;)
 
 summary %&gt;%
-  kbl() %&gt;%
-  kable_material(c(&quot;striped&quot;))
-
-ggroc(list(roc_glm, roc_pcaknn, roc_knn, roc_rf, roc_es), legacy.axes = TRUE) + 
-  theme_linedraw() + 
-  ggtitle(&quot;ROC&quot;) +
-  geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1), color=&quot;grey&quot;, linetype=&quot;dashed&quot;) +
-  scale_colour_discrete(labels = c(&quot;PCA + Logistic&quot;, &quot;PCA + KNN&quot;, &quot;KNN&quot;, &quot;Random forest&quot;, &quot;Ensemble&quot;)) +
-  labs(color = &quot;Models&quot;)</code></pre>
+  kbl(caption = &quot;Table 1. Summary of performance measures for all algorithms&quot;) %&gt;%
+  kable_material(c(&quot;striped&quot;)) </code></pre>
+<table class=" lightable-material lightable-striped" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>
+Table 1. Summary of performance measures for all algorithms
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Sensitivity
+</th>
+<th style="text-align:right;">
+Specificity
+</th>
+<th style="text-align:right;">
+Overall accuracy
+</th>
+<th style="text-align:right;">
+F_1 score
+</th>
+<th style="text-align:right;">
+AUC
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+PCA + Logistic
+</td>
+<td style="text-align:right;">
+0.892
+</td>
+<td style="text-align:right;">
+0.855
+</td>
+<td style="text-align:right;">
+0.875
+</td>
+<td style="text-align:right;">
+0.890
+</td>
+<td style="text-align:right;">
+0.946
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PCA + KNN
+</td>
+<td style="text-align:right;">
+0.923
+</td>
+<td style="text-align:right;">
+0.727
+</td>
+<td style="text-align:right;">
+0.833
+</td>
+<td style="text-align:right;">
+0.896
+</td>
+<td style="text-align:right;">
+0.889
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KNN
+</td>
+<td style="text-align:right;">
+0.938
+</td>
+<td style="text-align:right;">
+0.636
+</td>
+<td style="text-align:right;">
+0.800
+</td>
+<td style="text-align:right;">
+0.894
+</td>
+<td style="text-align:right;">
+0.897
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Random forest
+</td>
+<td style="text-align:right;">
+0.923
+</td>
+<td style="text-align:right;">
+0.891
+</td>
+<td style="text-align:right;">
+0.908
+</td>
+<td style="text-align:right;">
+0.920
+</td>
+<td style="text-align:right;">
+0.953
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ensemble of KNN &amp; RF
+</td>
+<td style="text-align:right;">
+0.923
+</td>
+<td style="text-align:right;">
+0.836
+</td>
+<td style="text-align:right;">
+0.883
+</td>
+<td style="text-align:right;">
+0.912
+</td>
+<td style="text-align:right;">
+0.942
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 
