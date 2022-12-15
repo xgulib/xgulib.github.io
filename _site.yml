@@ -19,7 +19,7 @@ navbar:
       href: mailto:xgu@g.harvard.edu                    # CHANGE HERE 
     - text: "GitHub"
       icon: fa-github
-      href: https://github.com/xgulib       # CHANGE HERE 
+      href: https://github.com/xgulib/xgulib.github.io       # CHANGE HERE 
 output:
   html_document:
     theme: cosmo
